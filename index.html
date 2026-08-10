@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* ===== トークン ===== */
+    :root {
+      --bp-tablet: 600px;
+      --color-primary: #2563eb;
+      --color-danger: #dc2626;
+      --color-org: #ee7800;
+      --color-total: #c00;
+      --color-text: #222;
+      --color-muted: #888;
+      --color-bg: #f4f5f7;
+      --color-surface: #fff;
+      --color-border: #cbd5e1;
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, .1);
+      --radius: 6px;
+      --container-max: 720px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ===== ベース：モバイル（〜599px）===== */
+    html { overflow-x: hidden; }
+    body {
+      font-family: -apple-system, "Hiragino Kaku Gothic ProN", sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.6;
+    }
+    em { font-style: normal; }
+
+    .container {
+      max-width: var(--container-max);
+      margin: 0 auto;
+      padding: 0 10px 240px;
+    }
+
+    h1 {
+      background-color: #efefef;
+      font-size: 16px;
+      text-align: center;
+      padding: 5px 0;
+      margin-bottom: 14px;
+      width: 100vw;
+      margin-left: calc(50% - 50vw);
+      margin-right: calc(50% - 50vw);
+    }
+
+    button {
+      font-size: 15px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: var(--radius);
+      cursor: pointer;
+      background: var(--color-primary);
+      color: #fff;
+      flex: 1;
+    }
+    button.reset { background: var(--color-danger); }
+    button:active { opacity: .85; }
+
+    .case-select { display: flex; gap: 8px; margin-bottom: 12px; }
+    .case-select label {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      border: 2px solid var(--color-border);
+      border-radius: var(--radius);
+      cursor: pointer;
+      background: var(--color-surface);
+      font-weight: 600;
+      transition: .15s;
+    }
+    .case-select input { display: none; }
+    .case-select label:has(input:checked) {
+      border-color: var(--color-primary);
+      background: #eff6ff;
+      color: var(--color-primary);
+    }
+
+    /* 中型介入チェックボックス（治療選択時のみ）*/
+    .intervention {
+      display: none;
+      margin-bottom: 16px;
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      padding: 12px 14px;
+      box-shadow: var(--shadow-card);
+    }
+    .intervention.show { display: block; }
+    .intervention label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .intervention input[type="checkbox"] { width: 20px; height: 20px; }
+    .intervention .amt {
+      color: var(--color-danger);
+      font-size: 13px;
+      margin-left: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--color-surface);
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+    th, td {
+      padding: 8px 5px;
+      text-align: right;
+      border-bottom: 1px solid #eee;
+      font-size: 14px;
+    }
+    th:first-child, td:first-child { text-align: left; }
+    thead th { background: #eef2ff; font-size: 13px; }
+    td.name { font-weight: 600; }
+
+    input[type="number"] {
+      width: 60px;
+      padding: 6px;
+      font-size: 16px; /* iOS：16px未満は不可 */
+      text-align: right;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+    }
+    input[type="number"]:focus { border-color: var(--color-primary); outline: none; }
+
+    /* 小計セルの最小幅 */
+    .subtotal-cell { min-width: 10em; }
+
+    /* 商品名セル内の単価（モバイル用） */
+    .name .unit-price {
+      display: block;
+      font-weight: 400;
+      font-size: 11px;
+      color: var(--color-muted);
+      margin-top: 2px;
+    }
+
+    /* モバイルでは単価列を非表示 */
+    .col-price { display: none; }
+
+    .result {
+      position: fixed;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      background: var(--color-surface);
+      padding: 10px 10px 5px;
+      box-shadow: var(--shadow-card);
+    }
+    .tool-bar { display: flex; align-items: center; gap: 12px; justify-content: flex-end; margin-bottom: 10px; }
+    .readme { text-align: center; font-size: 12px; }
+    .readme-link {
+      font-size: 13px;
+      color: var(--color-muted);
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .result-row { display: flex; justify-content: space-between; }
+    .result-row.total {
+      font-size: 18px;
+      font-weight: 700;
+      border-top: 2px solid var(--color-text);
+    }
+    .result-row .label { color: #555; }
+    .rate-note { font-size: 12px; color: var(--color-muted); margin-top: 4px; text-align: right; }
+    #org { color: var(--color-org); }
+    #total { color: var(--color-total); }
+
+    /* ===== タブレット／PC（600px〜）===== */
+    @media (min-width: 600px) {
+      h1 { font-size: 18px; margin-bottom: 16px; }
+      button { flex: 0 0 auto; }
+      th, td { padding: 10px 8px; font-size: 15px; }
+      thead th { font-size: 13px; }
+      input[type="number"] { width: 72px; padding: 8px; font-size: 15px; }
+      .result { padding: 16px; }
+      .result-row, .rate-note, .tool-bar { max-width: var(--container-max); margin: 0 auto; }
+      .tool-bar { margin-bottom: 10px; }
+      .result-row.total { font-size: 20px; }
+
+      /* PCでは単価列を表示し、商品名内の単価は非表示 */
+      .col-price { display: table-cell; }
+      .name .unit-price { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>闇医者お会計ツール</h1>
+
+    <div class="case-select" id="caseSelect">
+      <label><input type="radio" name="case" value="治療" checked><span>治療（<em id="rate-治療"></em>）</span></label>
+      <label><input type="radio" name="case" value="購入"><span>購入（<em id="rate-購入"></em>）</span></label>
+    </div>
+
+    <!-- 中型介入（治療選択時のみ表示）-->
+    <div class="intervention" id="intervention">
+      <label>
+        <input type="checkbox" id="interventionCheck">
+        <span>中型介入</span>
+        <span class="amt" id="interventionAmt"></span>
+      </label>
+    </div>
+
+    <form id="calcForm">
+      <table>
+        <thead>
+          <tr><th>商品</th><th class="col-price">単価</th><th>個数</th><th>小計</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </form>
+
+    <div class="result">
+      <div class="tool-bar">
+        <button type="button" class="reset" id="resetBtn">リセット</button>
+      </div>
+      <div class="result-row"><span class="label">小計</span><span id="subtotal">¥0</span></div>
+      <div class="result-row"><span class="label">組織入金額</span><span id="org">¥0</span></div>
+      <div class="result-row"><span class="label">取り分</span><span id="share">¥0</span></div>
+      <div class="result-row total"><span class="label">請求金額</span><span id="total">¥0</span></div>
+      <div class="rate-note" id="rateNote"></div>
+      <div class="readme">《<a class="readme-link" id="readmeLink" target="_blank" rel="noopener">README</a>》</div>
+    </div>
+  </div>
+
+  <!-- 行テンプレート（renderRowsで複製）-->
+  <template id="rowTemplate">
+    <tr>
+      <td class="name"><span class="name-text"></span><span class="unit-price"></span></td>
+      <td class="col-price price-text"></td>
+      <td>
+        <input type="number" min="0" step="1" value="0" inputmode="numeric" pattern="[0-9]*">
+      </td>
+      <td class="subtotal-cell">¥0</td>
+    </tr>
+  </template>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* ===== 定数 ===== */
+    const CASE = { TREATMENT: '治療', PURCHASE: '購入' };
+    const RATE_KEY = { INTERVENTION_TREATMENT: '中型介入治療' };
+
+    /* ===== 状態 ===== */
+    let PRODUCTS = [];
+    let RATES = {};
+
+    /* ===== DOM参照キャッシュ ===== */
+    const el = {
+      rows:             document.getElementById('rows'),
+      rowTemplate:      document.getElementById('rowTemplate'),
+      caseSelect:       document.getElementById('caseSelect'),
+      intervention:     document.getElementById('intervention'),
+      interventionChk:  document.getElementById('interventionCheck'),
+      interventionAmt:  document.getElementById('interventionAmt'),
+      resetBtn:         document.getElementById('resetBtn'),
+      readmeLink:       document.getElementById('readmeLink'),
+      subtotal:         document.getElementById('subtotal'),
+      org:              document.getElementById('org'),
+      share:            document.getElementById('share'),
+      total:            document.getElementById('total'),
+      rateNote:         document.getElementById('rateNote'),
+      rateTreatment:    document.getElementById('rate-治療'),
+      ratePurchase:     document.getElementById('rate-購入'),
+    };
+
+    /* ===== ユーティリティ ===== */
+    const yen = n => '¥' + Math.round(n).toLocaleString();
+    const pct = r => Math.round(r * 100) + '%';
+
+    // 入力値を非負整数に正規化
+    function normalizeQty(value) {
+      const qty = parseInt(value, 10);
+      return (isNaN(qty) || qty < 0) ? 0 : qty;
+    }
+
+    /* ===== 初期化：データ取得 ===== */
+    google.script.run
+      .withSuccessHandler(function (data) {
+        PRODUCTS = data.products;
+        RATES = data.rates;
+        renderRows();
+        renderRateLabels();
+        renderInterventionAmt();
+        update();
+      })
+      .withFailureHandler(function (err) {
+        alert('データ取得に失敗しました: ' + err.message);
+      })
+      .getData();
+
+    /* ===== readmeリンクのURLを取得して設定 ===== */
+    function setupReadmeLink() {
+      google.script.run
+        .withSuccessHandler(function (url) {
+          el.readmeLink.href = url + '?page=readme';
+        })
+        .withFailureHandler(function () {
+          // 取得失敗時はリンクを隠す
+          el.readmeLink.style.display = 'none';
+        })
+        .getScriptUrl();
+    }
+
+    /* ===== 描画：静的ラベル ===== */
+    function renderRateLabels() {
+      if (el.rateTreatment && RATES[CASE.TREATMENT] != null) {
+        el.rateTreatment.textContent = pct(RATES[CASE.TREATMENT]);
+      }
+      if (el.ratePurchase && RATES[CASE.PURCHASE] != null) {
+        el.ratePurchase.textContent = pct(RATES[CASE.PURCHASE]);
+      }
+    }
+
+    // 中型介入の固定額をラベルに表示
+    function renderInterventionAmt() {
+      const amt = RATES[RATE_KEY.INTERVENTION_TREATMENT];
+      if (el.interventionAmt && amt != null) {
+        el.interventionAmt.textContent = '請求 ' + yen(amt) + ' 固定';
+      }
+    }
+
+    /* ===== 描画：商品行 ===== */
+    function renderRows() {
+      const frag = document.createDocumentFragment();
+
+      PRODUCTS.forEach(function (p, i) {
+        const row = el.rowTemplate.content.firstElementChild.cloneNode(true);
+        row.querySelector('.name-text').textContent = p.name;
+        row.querySelector('.unit-price').textContent = yen(p.price);  // モバイル用
+        row.querySelector('.price-text').textContent = yen(p.price);  // PC単価列
+        row.querySelector('.subtotal-cell').id = 'sub-' + i;
+
+        const input = row.querySelector('input[type="number"]');
+        input.dataset.index = i;
+        frag.appendChild(row);
+      });
+
+      el.rows.innerHTML = '';
+      el.rows.appendChild(frag);
+    }
+
+    /* ===== 計算：純粋関数 ===== */
+    // 各行の小計と全体小計を算出
+    function computeSubtotals() {
+      const lineSubtotals = [];
+      let subtotal = 0;
+
+      el.rows.querySelectorAll('input[type="number"]').forEach(function (input) {
+        const i = Number(input.dataset.index);
+        const qty = normalizeQty(input.value);
+        const sub = PRODUCTS[i].price * qty;
+        lineSubtotals[i] = sub;
+        subtotal += sub;
+      });
+
+      return { lineSubtotals, subtotal };
+    }
+
+    // 請求金額・組織入金額・取り分を算出
+    function computeBilling(subtotal, caseKey, useIntervention) {
+      const rate = RATES[caseKey] || 0;
+      // 中型介入チェック時は固定値、それ以外は小計を請求額とする
+      const billing = useIntervention
+        ? (RATES[RATE_KEY.INTERVENTION_TREATMENT] || 0)
+        : subtotal;
+      const org = billing * rate;      // 組織入金額
+      const share = billing - org;     // 取り分
+      return { rate, billing, org, share };
+    }
+
+    /* ===== 更新：計算 → 描画 ===== */
+    function update() {
+      const caseKey = el.caseSelect.querySelector('input[name="case"]:checked').value;
+      const isTreatment = (caseKey === CASE.TREATMENT);
+
+      // 治療時のみ中型介入UIを表示。治療以外に切り替えたらチェック解除
+      el.intervention.classList.toggle('show', isTreatment);
+      if (!isTreatment) el.interventionChk.checked = false;
+      const useIntervention = isTreatment && el.interventionChk.checked;
+
+      // 計算
+      const { lineSubtotals, subtotal } = computeSubtotals();
+      const { rate, billing, org, share } = computeBilling(subtotal, caseKey, useIntervention);
+
+      // 行小計を描画
+      lineSubtotals.forEach(function (sub, i) {
+        const cell = document.getElementById('sub-' + i);
+        if (cell) cell.textContent = yen(sub);
+      });
+
+      // 集計を描画
+      el.subtotal.textContent = yen(subtotal);
+      el.total.textContent = yen(billing);
+      el.org.textContent = yen(org);
+      el.share.textContent = yen(share);
+
+      let note = '区分：' + caseKey + '（組織入金率 ' + pct(rate) + '）';
+      if (useIntervention) note += ' ／ 中型介入：請求固定';
+      el.rateNote.textContent = note;
+    }
+
+    /* ===== リセット ===== */
+    function resetForm() {
+      el.rows.querySelectorAll('input[type="number"]').forEach(function (input) {
+        input.value = 0;
+        delete input.dataset.prev;
+      });
+      el.interventionChk.checked = false; // 中型介入も解除
+      update();
+    }
+
+    /* ===== 入力フォーカス制御（フォーカスで空に、離脱で復元）===== */
+    function onQtyFocus(input) {
+      input.dataset.prev = input.value;
+      input.value = '';
+    }
+    function onQtyBlur(input) {
+      if (input.value === '') {
+        input.value = (input.dataset.prev != null && input.dataset.prev !== '')
+          ? input.dataset.prev
+          : 0;
+      }
+      update();
+    }
+
+    /* ===== イベント委譲 ===== */
+    el.caseSelect.addEventListener('change', update);
+    el.interventionChk.addEventListener('change', update);
+    el.resetBtn.addEventListener('click', resetForm);
+
+    // 数量入力は動的生成のため委譲で受ける
+    el.rows.addEventListener('input', function (e) {
+      if (e.target.matches('input[type="number"]')) update();
+    });
+    el.rows.addEventListener('focusin', function (e) {
+      if (e.target.matches('input[type="number"]')) onQtyFocus(e.target);
+    });
+    el.rows.addEventListener('focusout', function (e) {
+      if (e.target.matches('input[type="number"]')) onQtyBlur(e.target);
+    });
+
+    /* ===== 起動 ===== */
+    setupReadmeLink();
+  })();
+  </script>
+</body>
+</html>

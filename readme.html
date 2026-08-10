@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --color-primary: #2563eb;
+      --color-text: #222;
+      --color-muted: #666;
+      --color-bg: #f4f5f7;
+      --color-surface: #fff;
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, .1);
+      --radius: 8px;
+      --container-max: 720px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, "Hiragino Kaku Gothic ProN", sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.8;
+      padding: 20px 12px 60px;
+    }
+
+    .container { max-width: var(--container-max); margin: 0 auto; }
+
+    header {
+      background: #efefef;
+      text-align: center;
+      padding: 16px;
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+    }
+    header h1 { font-size: 18px; }
+    header .version { font-size: 12px; color: var(--color-muted); margin-top: 4px; }
+
+    .card {
+      background: var(--color-surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-card);
+      padding: 16px 18px;
+      margin-bottom: 16px;
+    }
+
+    section h2 {
+      font-size: 15px;
+      color: var(--color-primary);
+      border-bottom: 2px solid #eef2ff;
+      padding-bottom: 6px;
+      margin-bottom: 10px;
+    }
+
+    p { font-size: 14px; margin-bottom: 8px; }
+    p:last-child { margin-bottom: 0; }
+
+    .note { font-size: 13px; color: var(--color-muted); }
+
+    a { color: var(--color-primary); word-break: break-all; }
+
+    .caution { color: #c00; font-weight: 600; }
+
+    footer {
+      text-align: center;
+      font-size: 12px;
+      color: var(--color-muted);
+      margin-top: 24px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>闇医者お会計ツール</h1>
+      <div class="version">Ver.1.0</div>
+    </header>
+
+    <section class="card">
+      <h2>このアプリについて</h2>
+      <p>
+        ストグラ（ストリートグラフィティ ロールプレイ）— GTAV（グランド・セフト・オートV）を元にした
+        仮想都市「ロスサントス」を舞台とするロールプレイ — に登場する闇医者たちが、
+        日々の業務で使っていそうだな、という想像を観測者視点で <a href="https://x.com/d_sanuki">d_sanuki</a> が、お遊びで形にしたWEBアプリです。
+      </p>
+      <p class="note">※ 計算方法はうろ覚えのため、誤りがあればご容赦ください。</p>
+      <p class="note">※ 価格は把握していないため、暫定で全商品 10,000円 に設定しています。</p>
+    </section>
+
+    <section class="card">
+      <h2>仕様</h2>
+      <p>Google スプレッドシート + Google Apps Script で作成・デプロイしています。</p>
+    </section>
+
+    <section class="card">
+      <h2>コード</h2>
+      <p><a href="https://github.com/d-sanuki/croaker-gas.git" target="_blank" rel="noopener">https://github.com/d-sanuki/croaker-gas.git</a></p>
+      <p>
+        GAS のコードは上記の通り GitHub に公開しています。
+        Analytics やその他の不審なコードは一切ございません。
+        不安な方はブラウザの開発者ツール（F12）の「Network」タブで通信内容をご確認ください。
+        ブルー背景のアラート「このアプリケーションは Google Apps Script のユーザーによって作成されたものです」が表示されるのは正常です。
+      </p>
+      <p class="note">GitHubからコードをダウンロードしてご自身で使用される場合は、自己責任でご自由にどうぞ。</p>
+    </section>
+
+    <section class="card">
+      <h2>データ（スプレッドシート）と使い方</h2>
+      <p>
+        GitHub にサンプルのxlsxを同梱していますが、同じ構造でスプレッドシートをご用意ください。
+        （Googleドライブにアップロード、そのまま価格だけ書き換えて「Googleスプレッドシートとして保存」すれば使用可能です。）
+        productsシートにname（名前）,price（価格）で各種治療アイテムを登録。
+        configシートに「治療の場合の組織入金額割合」「購入の場合の組織入金割合」「中型介入の場合の治療金額」の3つの定数を登録。
+        スプレッドシートは「共有」で「リンクを知っている全員」を「閲覧者」に設定。
+        code.gsの「SPREADSHEET_ID」を使用するGoogleスプレッドシートの「スプレッドシートID」に書き換える。
+        「デプロイ」→「新しいデプロイ」で「次のユーザーとして実行」を「自分」に、「アクセスできるユーザー」を「全員」にして「デプロイ」を実行。
+        「ウェブアプリ」のURLをコピーしてアクセスする。
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>注意事項</h2>
+      <p class="caution">セキュリティの観点から、コードの改変・再配布は全面的に禁止します。</p>
+      <p class="caution">配信者さんへの指示・提案はおやめください。</p>
+    </section>
+
+    <footer>© 闇医者お会計ツール</footer>
+  </div>
+</body>
+</html>
